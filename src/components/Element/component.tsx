@@ -1,0 +1,143 @@
+import * as React from 'react';
+
+import type { Element as ElementClass, ElementArgs } from './index';
+
+/**
+ * The props of a React wrapper whose element can contain children. Declared here rather than in
+ * the core args, so that the core types don't depend on React.
+ */
+type ParentProps<P> = P & {
+    /**
+     * The children of the current component.
+     */
+    children?: React.ReactNode;
+};
+
+/**
+ * The base class for all UI elements. Wraps a DOM element with the PCUI interface.
+ */
+class Element<P extends ElementArgs, S> extends React.Component<P, S> {
+    static ctor: new (args?: ElementArgs) => ElementClass;
+
+    element: ElementClass;
+
+    elementClass: typeof ElementClass;
+
+    onClick: () => void;
+
+    onChange: ElementArgs['onChange'];
+
+    onRemove: () => void;
+
+    link: ElementArgs['link'];
+
+    onAttach?: () => void;
+
+    class: Set<string>;
+
+    constructor(props: P) {
+        super(props);
+        // Auto-set elementClass from static ctor property
+        this.elementClass = (this.constructor as typeof Element).ctor as typeof ElementClass;
+        if (props.onClick) {
+            this.onClick = props.onClick;
+        }
+        if (props.onRemove) {
+            this.onRemove = props.onRemove;
+        }
+        if (props.onChange) {
+            this.onChange = props.onChange;
+        }
+        if (props.link) {
+            this.link = props.link;
+        }
+    }
+
+    attachElement = (nodeElement: HTMLElement | SVGElement | null, containerElement?: HTMLElement | SVGElement) => {
+        if (!nodeElement) return;
+
+        this.element = new this.elementClass({
+            ...this.props,
+            dom: nodeElement,
+            content: containerElement,
+            parent: undefined
+        });
+
+        const c = this.props.class;
+        this.class = new Set(c ? (Array.isArray(c) ? c.slice() : [c]) : undefined);
+
+        if (this.onClick) {
+            this.element.on('click', this.onClick);
+        }
+        if (this.onRemove) {
+            this.element.on('click:remove', this.onRemove);
+        }
+        if (this.onChange) {
+            this.element.on('change', this.onChange);
+        }
+        if (this.props.parent) {
+            this.element.parent = this.props.parent;
+        }
+        if (this.onAttach) {
+            this.onAttach();
+        }
+    };
+
+    getPropertyDescriptor = (obj: object, prop: PropertyKey) => {
+        let desc;
+        do {
+            desc = Object.getOwnPropertyDescriptor(obj, prop);
+        } while (!desc && (obj = Object.getPrototypeOf(obj)));
+        return desc;
+    };
+
+    componentDidMount() {
+        if (this.link) {
+            this.element.link(this.link.observer, this.link.path);
+        }
+    }
+
+    componentDidUpdate(prevProps: Readonly<P>) {
+        Object.keys(this.props).forEach((prop) => {
+            const propDescriptor = this.getPropertyDescriptor(this.element, prop);
+            if (propDescriptor && propDescriptor.set) {
+                if (prop === 'value') {
+                    (this.element as ElementClass & { _suppressChange: boolean })._suppressChange = true;
+                    (this.element as unknown as Record<string, unknown>)[prop] = (
+                        this.props as Record<string, unknown>
+                    )[prop];
+                    (this.element as ElementClass & { _suppressChange: boolean })._suppressChange = false;
+                } else {
+                    (this.element as unknown as Record<string, unknown>)[prop] = (
+                        this.props as Record<string, unknown>
+                    )[prop];
+                }
+            } else if (prop === 'class') {
+                const c = this.props[prop];
+                const classProp = new Set(c ? (Array.isArray(c) ? c.slice() : [c]) : undefined);
+                classProp.forEach((cls: string) => {
+                    if (!this.class.has(cls)) {
+                        this.element.class.add(cls);
+                        this.class.add(cls);
+                    }
+                });
+                this.class.forEach((cls: string) => {
+                    if (!classProp.has(cls)) {
+                        this.element.class.remove(cls);
+                        this.class.delete(cls);
+                    }
+                });
+            }
+        });
+        if (prevProps.link !== this.props.link && this.props.link) {
+            this.element.link(this.props.link.observer, this.props.link.path);
+        }
+    }
+
+    render() {
+        return <div ref={this.attachElement} />;
+    }
+}
+
+export { Element };
+export type { ParentProps };

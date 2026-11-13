@@ -1,0 +1,159 @@
+{
+  "name": "@playcanvas/pcui",
+  "version": "6.2.0",
+  "author": "PlayCanvas <support@playcanvas.com>",
+  "homepage": "https://developer.playcanvas.com/user-manual/pcui/",
+  "description": "User interface component library for the web",
+  "keywords": [
+    "components",
+    "css",
+    "dom",
+    "html",
+    "javascript",
+    "pcui",
+    "playcanvas",
+    "react",
+    "sass",
+    "typescript",
+    "ui"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/module/src/index.mjs",
+  "module": "dist/module/src/index.mjs",
+  "types": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./dist/module/src/index.mjs"
+    },
+    "./react": {
+      "types": "./react/types/index.d.ts",
+      "default": "./react/dist/module/src/index.mjs"
+    },
+    "./styles": {
+      "default": "./styles/dist/index.mjs"
+    },
+    "./themes/*.scss": "./dist/pcui-theme-*.scss",
+    "./package.json": "./package.json"
+  },
+  "bugs": {
+    "url": "https://github.com/playcanvas/pcui/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/playcanvas/pcui.git"
+  },
+  "files": [
+    "dist",
+    "types",
+    "react/dist",
+    "react/types",
+    "react/package.json",
+    "styles"
+  ],
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@playcanvas/observer": "^1.8.1"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@playcanvas/eslint-config": "3.0.0",
+    "@rollup/plugin-node-resolve": "16.0.3",
+    "@rollup/plugin-replace": "6.0.3",
+    "@rollup/plugin-typescript": "12.3.1",
+    "@storybook/addon-docs": "10.6.6",
+    "@storybook/addon-webpack5-compiler-swc": "4.0.3",
+    "@storybook/react-webpack5": "10.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "autoprefixer": "10.6.2",
+    "concurrently": "10.0.7",
+    "css-loader": "7.1.5",
+    "eslint": "9.39.5",
+    "eslint-plugin-storybook": "10.6.6",
+    "jsdom": "31.0.0",
+    "playcanvas": "2.24.0",
+    "postcss": "8.5.32",
+    "prettier": "3.9.10",
+    "publint": "0.3.25",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "rollup": "4.68.2",
+    "rollup-plugin-dts": "6.5.1",
+    "rollup-plugin-sass": "1.15.3",
+    "sass": "1.108.1",
+    "sass-loader": "17.1.0",
+    "serve": "14.2.7",
+    "storybook": "10.6.6",
+    "style-loader": "4.0.0",
+    "stylelint": "17.16.0",
+    "stylelint-config-standard-scss": "17.0.0",
+    "typedoc": "0.28.20",
+    "typedoc-plugin-mdn-links": "5.1.1",
+    "typescript": "6.0.3",
+    "webpack": "5.112.2"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "attw": "attw --pack . --exclude-entrypoints ./styles --ignore-rules cjs-resolves-to-esm",
+    "build": "rollup -c && npm run bundle:styles && npm run build:types",
+    "build:es6": "rollup -c --environment target:es6",
+    "build:icons": "cd ./utils && node ./build-font-icons.mjs",
+    "build:react:es6": "rollup -c --environment target:react:es6",
+    "build:storybook": "storybook build -o storybook",
+    "build:styles": "rollup -c --environment target:styles",
+    "build:types": "tsc --project ./tsconfig.json --declaration --emitDeclarationOnly --outDir .types/core && tsc --project ./react/tsconfig.json --declaration --emitDeclarationOnly --outDir .types/react && rollup -c --environment target:types",
+    "bundle:styles": "node utils/bundle-scss.mjs src/scss/pcui-theme-grey.scss dist/pcui-theme-grey.scss && node utils/bundle-scss.mjs src/scss/pcui-theme-green.scss dist/pcui-theme-green.scss",
+    "develop": "concurrently --kill-others \"npm run watch\" \"npm run serve\"",
+    "docs": "typedoc",
+    "fmt": "prettier --check src utils rollup.config.mjs eslint.config.mjs prettier.config.mjs",
+    "fmt:fix": "prettier --write src utils rollup.config.mjs eslint.config.mjs prettier.config.mjs",
+    "lint": "npm run lint:js && npm run lint:styles",
+    "lint:fix": "npm run lint:js:fix && npm run lint:styles -- --fix",
+    "lint:js": "eslint src utils rollup.config.mjs eslint.config.mjs prettier.config.mjs",
+    "lint:js:fix": "eslint src utils rollup.config.mjs eslint.config.mjs prettier.config.mjs --fix",
+    "lint:styles": "stylelint \"src/**/*.scss\"",
+    "publint": "publint",
+    "serve": "serve",
+    "storybook": "storybook dev -p 9000",
+    "test": "node --test \"test/**/*.mjs\" && npm run test:types",
+    "test:types": "npm run build:types && tsc --project ./test/types/tsconfig.json && tsc --project ./test/types/tsconfig.strict.json && tsc --project ./test/types/tsconfig.core.json",
+    "watch": "rollup -c -w",
+    "watch:es6": "rollup -c -w --environment target:es6",
+    "watch:react:es6": "rollup -c -w --environment target:react:es6",
+    "watch:styles": "rollup -c -w --environment target:styles"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^22.22.2 || ^24.15.0 || >=26.0.0",
+      "onFail": "error"
+    }
+  }
+}

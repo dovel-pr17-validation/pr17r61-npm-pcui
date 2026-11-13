@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26.x
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build PCUI
+        run: npm run build
+
+      - name: Run Publint
+        run: npm run publint
+
+      - name: Check Package Types
+        run: npm run attw
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26.x
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Check Formatting
+        run: npm run fmt
+
+      - name: Run ESLint
+        run: npm run lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26.x
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build PCUI ES6
+        run: npm run build:es6
+
+      - name: Run Tests
+        run: npm test

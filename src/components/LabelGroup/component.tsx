@@ -1,0 +1,54 @@
+import type { Observer } from '@playcanvas/observer';
+import type { JSXElementConstructor, ReactElement } from 'react';
+
+import { Element } from '../Element/component';
+import type { ParentProps } from '../Element/component';
+
+import type { LabelGroupArgs } from './index';
+import { LabelGroup as LabelGroupClass } from './index';
+
+// Define interface for child props
+interface LabelGroupChildProps {
+    link?: {
+        observer: Observer | Observer[];
+        path: string;
+    };
+    [key: string]: unknown; // Allow other props
+}
+
+/**
+ * Represents a group of a Label and a Element. Useful for rows of labeled fields.
+ */
+class LabelGroup extends Element<ParentProps<LabelGroupArgs>, object> {
+    static ctor = LabelGroupClass;
+
+    attachElement = (nodeElement: HTMLElement | SVGElement | null, containerElement?: HTMLElement | SVGElement) => {
+        if (!nodeElement) return;
+        const childrenErrorMessage = 'A LabelGroup must contain a single PCUI react component as a child';
+        // check that the LabelGroup has a single child
+        if (Array.isArray(this.props.children) || !this.props.children) {
+            throw new Error(childrenErrorMessage);
+        }
+        // casting child as a single ReactElement as we have confirmed it is above
+        const child = this.props.children as ReactElement<LabelGroupChildProps>;
+        const fieldProps = child.props;
+        // check if the ReactElement contains an instance of an Element as its type, confirming it is a PCUI react component
+        if (!((child.type as JSXElementConstructor<object>).prototype instanceof Element)) {
+            throw new Error(childrenErrorMessage);
+        }
+        // it's safe to cast the ReactElement type as a BaseComponent as we have confirmed it is an Element above
+        const fieldClass = (child.type as typeof Element).ctor;
+        const labelField = new fieldClass({ ...fieldProps });
+        if (child.props.link) {
+            labelField.link(fieldProps.link.observer, fieldProps.link.path);
+        }
+        this.element = new this.elementClass({
+            ...this.props,
+            dom: nodeElement,
+            parent: undefined,
+            field: labelField
+        } as LabelGroupArgs);
+    };
+}
+
+export { LabelGroup };
